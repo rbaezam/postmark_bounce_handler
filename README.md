@@ -2,10 +2,14 @@
 
 ### Setup
 
-```bundle install```
+```
+bundle install
+```
 
 ### Tests
-```rspec```
+```
+rspec
+```
 
 ### Run
 Include the class in RoR code
