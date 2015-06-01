@@ -8,27 +8,41 @@ class PostmarkBounceHandler
 
   @client = nil
 
+  # Initialize the Postmark Bounce Handler
+  # @param api_token a string containing the token to use for connecting to Postmark
   def initialize(api_token)
     @client = Postmark::ApiClient.new(api_token)
   end
 
-  def receive_bounce_notification(json_string)
+  # Method that would be called by the bounce webhook
+  # @param json_string [string] in json format with the bounce information
+  # @return [boolean] true if the process was executed correctly, false if not
+  def process_bounce_notification(json_string)
+
+    result = true
 
     begin
       my_hash = parse_json(json_string)
     rescue JSON::JSONError
       puts 'Error parsing the JSON string'
+      result = false
     end
 
     if my_hash['status'] == RESULT_OK
       res = my_hash['json']
       if res['can_activate'] == true
-        try_reactivate_email res
+        res = try_reactivate_email res
+        if res['status'] == RESULT_ERROR
+          result = false
+        end
       end
     end
 
   end
 
+  # Parse json string and converts it to hash
+  # @param json_string [string] containing the values in json format
+  # @return [hash] containing all the values in the json passed as parameter
   def parse_json(json_string)
 
     hash = {}
@@ -45,6 +59,9 @@ class PostmarkBounceHandler
     return hash
   end
 
+  # Try to reactivate the bounce using the ID contained in the hash parameter
+  # @param [hash] containing the bounce values, including the ID needed to activate the email
+  # @return [hash] with the result of the operation. 'status' contains the outcome of the process.
   def try_reactivate_email(hash)
 
     hash = {}
